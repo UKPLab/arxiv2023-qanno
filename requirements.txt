@@ -1,0 +1,16 @@
+PyYAML==6.0
+loguru
+tqdm
+pandas
+openpyxl
+black
+isort
+wget
+pytest
+pathvalidate
+more-itertools
+seaborn
+dkpro-cassis
+tabulate
+scipy
+matplotlib
