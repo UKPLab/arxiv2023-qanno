@@ -524,17 +524,17 @@ def plot_annotator_statistics(data_relevant: MyData):
     annotators = [map_name(y) for x in df["annotators"] for y in x]
     annotators.sort()
 
-    figsize = (4, 2.5)
+    figsize = (4, 3)
     plt.figure(figsize=figsize)
     sns.countplot(x=annotators, palette=ANNOTATOR_PALETTE)
     # plt.xlabel("Annotators")
     plt.ylabel("#")
 
-    plt.xticks(rotation=20)
+    plt.xticks(rotation=45)
 
     plt.tight_layout()
 
-    plt.savefig(PATH_DATA_RESULTS / "annotator_statistics.pdf")
+    plt.savefig(PATH_PLOTS / "annotator_statistics.pdf")
 
 
 def plot_validator_statistics(data_relevant: MyData):
@@ -551,17 +551,17 @@ def plot_validator_statistics(data_relevant: MyData):
     annotators = [map_name(y) for x in df["validators"] for y in x]
     annotators.sort()
 
-    figsize = (4, 2.5)
+    figsize = (4, 3)
     plt.figure(figsize=figsize)
     sns.countplot(x=annotators, palette=ANNOTATOR_PALETTE)
     # plt.xlabel("Validators")
     plt.ylabel("#")
 
-    plt.xticks(rotation=20)
+    plt.xticks(rotation=45)
 
     plt.tight_layout()
 
-    plt.savefig(PATH_DATA_RESULTS / "validation_statistics.pdf")
+    plt.savefig(PATH_PLOTS / "validation_statistics.pdf")
 
 
 def plot_distribution_over_venues():
@@ -569,17 +569,17 @@ def plot_distribution_over_venues():
 
     df = pd.read_csv(PATH_DATA_SELECTED_PAPERS_CSV).sort_values("venue")
 
-    figsize = (4, 2.5)
+    figsize = (4, 3)
     plt.figure(figsize=figsize)
     sns.countplot(data=df, x="venue")
-    plt.xticks(rotation=45)
+    plt.xticks(rotation=90)
     plt.tight_layout()
 
     plt.savefig(PATH_PLOTS / "venues_countplot.pdf")
 
     plt.figure(figsize=figsize)
     sns.countplot(data=df, x="year")
-    plt.xticks(rotation=45)
+    plt.xticks(rotation=90)
     plt.tight_layout()
     plt.savefig(PATH_PLOTS / "years_countplot.pdf")
 
@@ -600,14 +600,19 @@ def _main():
     data_relevant = load_data_relevant()
     assert len(data_all) == 591, len(data_all)
 
+    plot_annotator_statistics(data_relevant)
+    plot_validator_statistics(data_relevant)
+    plot_distribution_over_venues()
+
+    return
+
     compute_dataset_statistics(data_all, data_relevant)
     plot_overall_judgement_barchart(data_relevant)
     plot_agreement_methods_barchart()
     plot_agreement_measure_stripplot()
     plot_error_rate_sample_sizes()
 
-    plot_annotator_statistics(data_relevant)
-    plot_validator_statistics(data_relevant)
+
 
     # analyse_error_rate_sizes()
 
