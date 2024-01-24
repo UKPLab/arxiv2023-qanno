@@ -107,6 +107,8 @@ def select_dataset_papers_from_papers_with_code() -> List[DatasetPaper]:
 
     anthology = AclAnthology()
 
+    tasks = set()
+
     for dataset in pwc_datasets:
         if dataset.get("paper") is None:
             missing_information += 1
@@ -154,10 +156,12 @@ def select_dataset_papers_from_papers_with_code() -> List[DatasetPaper]:
             paper_title=title,
             pdf_url=paper_from_anthology.pdf_url,
             venue=paper_from_anthology.event.venue.acronym,
-            year=year,
+            year=year
         )
 
         selected_papers.append(dataset_paper)
+
+        tasks.update([x["task"] for x in dataset["tasks"]])
 
     print("Total papers:", len(datasets))
     print("Texts papers:", len(pwc_datasets))
@@ -165,6 +169,7 @@ def select_dataset_papers_from_papers_with_code() -> List[DatasetPaper]:
     print("Missing Information:", missing_information)
     print("Filtered out:", filtered_out)
     print("Not Found", not_found)
+    print("Tasks", len(tasks))
 
     for v in sorted(filtered_out_venues):
         # print(v)

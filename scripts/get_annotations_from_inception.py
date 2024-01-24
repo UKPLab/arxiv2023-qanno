@@ -2,6 +2,7 @@ import contextlib
 import os
 import zipfile
 from io import BytesIO
+from pathlib import Path
 
 import joblib
 from pycaprio import Pycaprio
@@ -11,14 +12,13 @@ from tqdm import tqdm
 
 from qanno.paths import (
     PATH_DATA,
-    PATH_DATA_ANNOTATED_JSONCAS,
-    PATH_DATA_ANNOTATED_XMI,
-    PATH_ROOT,
+    PATH_DATA_ANNOTATED_QUALITY_JSONCAS,
+    PATH_DATA_ANNOTATED_QUALITY_XMI,
+    PATH_ROOT, PATH_DATA_ANNOTATED_COVERAGE_JSONCAS,
 )
 
-HOST = "https://blinky.ukp.informatik.tu-darmstadt.de/inception-experimental"
-PROJECT_NAME = "qanno-real-real-real"
-USER = "jandalf"
+BLINKY_EXPERIMENTAL = "https://blinky.ukp.informatik.tu-darmstadt.de/inception-experimental"
+BLINKY_STABLE = "https://blinky.ukp.informatik.tu-darmstadt.de/inception-stable"
 
 # os.environ["REQUESTS_CA_BUNDLE"] = str(PATH_DATA / "cert.pem")
 
@@ -41,61 +41,43 @@ def tqdm_joblib(tqdm_object):
         tqdm_object.close()
 
 
-def build_client() -> Pycaprio:
+def build_client(user: str, host: str) -> Pycaprio:
     secrets = {}
     with open(PATH_ROOT / ".env") as f:
         for line in f:
             k, v = line.strip().split("=")
             secrets[k.strip()] = v.strip()
 
-    return Pycaprio(HOST, (USER, secrets["inception-pw"]))
+    return Pycaprio(host, (user, secrets["inception-pw"]))
 
 
-def find_project(client: Pycaprio) -> Project:
+def find_project(client: Pycaprio, project_name: str) -> Project:
     projects = client.api.projects()
 
     for project in projects:
-        if project.project_name == PROJECT_NAME:
+        if project.project_name == project_name:
             return project
 
-    raise Exception(f"Did not find project with name [{PROJECT_NAME}]")
+    raise Exception(f"Did not find project with name [{project_name}]")
 
 
-def get_annotations():
-    PATH_DATA_ANNOTATED_XMI.mkdir(exist_ok=True, parents=True)
-    PATH_DATA_ANNOTATED_JSONCAS.mkdir(exist_ok=True, parents=True)
+def get_annotations(admin_user, annotator: str, host: str, project_name: str, folder: Path):
+    folder.mkdir(exist_ok=True, parents=True)
 
-    client = build_client()
-    project = find_project(client)
+    client = build_client(admin_user, host)
+    project = find_project(client, project_name)
     documents = client.api.documents(project)
-
-    def _download_document_as_xmi(document: Document):
-        exported_name = document.document_name.replace(".pdf", ".xmi")
-        target_path = PATH_DATA_ANNOTATED_XMI / exported_name
-
-        if target_path.is_file():
-            return
-
-        try:
-            xmi = client.api.annotation(project, document, USER, InceptionFormat.XMI)
-
-            zip_buffer = BytesIO(xmi)
-
-            with zipfile.ZipFile(zip_buffer, "r", zipfile.ZIP_DEFLATED, False) as zip_file:
-                zip_file.extract(exported_name)
-        except Exception as e:
-            print(f"Could not download [{exported_name}]", str(e))
 
     def _download_document_as_jsoncas(document: Document):
         exported_name = document.document_name.replace(".pdf", ".json")
-        target_path = PATH_DATA_ANNOTATED_JSONCAS / exported_name
+        target_path = folder / exported_name
 
         if target_path.is_file():
             # return
             pass
 
         try:
-            jsoncas = client.api.annotation(project, document, USER, "jsoncas")
+            jsoncas = client.api.annotation(project, document, annotator, "jsoncas")
             with open(target_path, "wb") as f:
                 f.write(jsoncas)
         except Exception as e:
@@ -107,7 +89,8 @@ def get_annotations():
 
 
 def _main():
-    get_annotations()
+    # get_annotations("jandalf", "qanno-real-real-real")
+    get_annotations("klie_admin", "klie",  BLINKY_EXPERIMENTAL, "qanno-coverage", PATH_DATA_ANNOTATED_COVERAGE_JSONCAS)
 
 
 if __name__ == "__main__":

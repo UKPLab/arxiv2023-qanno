@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from qanno.paths import (
     PATH_DATA_ANNOTATED,
-    PATH_DATA_ANNOTATED_JSONCAS,
+    PATH_DATA_ANNOTATED_QUALITY_JSONCAS,
     PATH_DATA_GENERATED,
     PATH_DATA_SELECTED_PAPERS_CSV,
 )
@@ -20,7 +20,7 @@ def check_paper_selection():
     df_papers = pd.read_csv(PATH_DATA_SELECTED_PAPERS_CSV)
 
     selected_papers = set(df_papers["uid"])
-    annotated_papers = set(p.stem.split("_", maxsplit=1)[0] for p in PATH_DATA_ANNOTATED_JSONCAS.iterdir())
+    annotated_papers = set(p.stem.split("_", maxsplit=1)[0] for p in PATH_DATA_ANNOTATED_QUALITY_JSONCAS.iterdir())
 
     for uid in annotated_papers:
         if uid not in selected_papers:
@@ -413,7 +413,7 @@ def _main():
 
     result = []
 
-    files = list(PATH_DATA_ANNOTATED_JSONCAS.iterdir())
+    files = list(PATH_DATA_ANNOTATED_QUALITY_JSONCAS.iterdir())
     files = list(reversed(files))
 
     skip = False
